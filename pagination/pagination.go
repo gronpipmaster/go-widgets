@@ -15,20 +15,21 @@ type Pagination struct {
 	numLinks    int
 	start       int
 	end         int
-	links       []*page
+	Pages       []*Page `json:"pages"`
 }
 
-type page struct {
-	Active bool
-	Number int
-	Link   string
+type Page struct {
+	Active bool   `json:"active"`
+	Number int    `json:"number"`
+	Link   string `json:"link"`
 }
 
 // Example:
-//         pagination := pagination.New(total, currentPage, pageSize, routes.Users.Index()+"page/")
+//         pagination := pagination.New(total, currentPage, pageSize, "http://example.com/blog/page/")
 // Example Print:
-//				 pagination.Render() #or template usage {{.pagination.Render}}
-//				 pagination.Summary() #or template usage {{.pagination.Summary}}
+//         pagination.Render() //or template usage {{.pagination.Render}}
+//         pagination.Summary() //or template usage {{.pagination.Summary}}
+//         //or marshaling json pagination object
 func New(total, currentPage, limit int, urlPattern string) *Pagination {
 	p := new(Pagination)
 	p.total = total
@@ -49,7 +50,7 @@ func (self *Pagination) Render() template.HTML {
 	var out bytes.Buffer
 	tPagination := template.Must(template.New("pagination").Parse(tmplPagination))
 	tMap := map[string]interface{}{
-		"links": self.links,
+		"links": self.Pages,
 	}
 	tPagination.Execute(&out, tMap)
 	return template.HTML(out.String())
@@ -97,7 +98,7 @@ func (self *Pagination) Init() {
 		}
 
 		for i := self.start; i <= self.end; i++ {
-			page := new(page)
+			page := new(Page)
 			page.Number = i
 			page.Link = fmt.Sprintf(self.urlPattern, page.Number)
 			if page.Number == self.currentPage {
@@ -105,7 +106,7 @@ func (self *Pagination) Init() {
 			} else {
 				page.Active = false
 			}
-			self.links = append(self.links, page)
+			self.Pages = append(self.Pages, page)
 		}
 	}
 
@@ -121,18 +122,18 @@ func (self *Pagination) Init() {
 }
 
 const (
-	tmplPagination = `
-  {{if .links}}
-  <ul class="pagination">
+	tmplPagination string = `
+{{if .links}}
+	<ul class="pagination">
     {{range .links}}
-      {{ if .Active }}
-        <li class="active"><a href="#">{{.Number}}</a></li>
-      {{ else }}
-        <li><a href="{{.Link}}">{{.Number}}</a></li>
-      {{ end }}
+      	{{ if .Active }}
+        	<li class="active"><a href="#">{{.Number}}</a></li>
+      	{{ else }}
+        	<li><a href="{{.Link}}">{{.Number}}</a></li>
+      	{{ end }}
     {{end}}
-  </ul>
-  {{end}}
-  `
-	tmplSummary = `{{if .total}}<div class="summary text-right">Displaying {{.start}}-{{.end}} of {{.total}} results.</div>{{end}}`
+  	</ul>
+{{end}}
+`
+	tmplSummary string = `{{if .total}}<div class="summary text-right">Displaying {{.start}}-{{.end}} of {{.total}} results.</div>{{end}}`
 )
