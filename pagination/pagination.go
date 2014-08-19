@@ -15,6 +15,8 @@ type Pagination struct {
 	numLinks    int
 	start       int
 	end         int
+	StartLink   string  `json:"start_link"`
+	EndLink     string  `json:"end_link"`
 	Pages       []*Page `json:"pages"`
 }
 
@@ -79,6 +81,9 @@ func (self *Pagination) Init() {
 	}
 	numPages := int(math.Ceil(float64(self.total) / float64(self.limit)))
 	if numPages > 1 {
+		self.StartLink = fmt.Sprintf(self.urlPattern, 1)
+		self.EndLink = fmt.Sprintf(self.urlPattern, numPages)
+
 		if numPages < self.numLinks {
 			self.start = 1
 			self.end = numPages
