@@ -97,7 +97,7 @@ func (self *Pagination) Init() {
 			}
 
 			if self.end > numPages {
-				self.start -= (self.end - numPages)
+				self.start -= (self.end - numPages) - 1
 				self.end = numPages
 			}
 		}
